@@ -15,13 +15,13 @@ const (
 
 type SQSControlerConfig struct {
 	config.Config
-	QueueURL   string `json:"queue_url"`
-	MsgsPerPod int    `json:"msgs_per_pod"`
+	QueueURLs  []string `json:"queue_urls"`
+	MsgsPerPod int      `json:"msgs_per_pod"`
 }
 
 type SQSColector struct {
-	queueURL string
-	cli      *aws.SQSClient
+	queueURLs []string
+	cli       *aws.SQSClient
 }
 
 type SQSCruncher struct {
@@ -31,13 +31,23 @@ type SQSCruncher struct {
 }
 
 func (s *SQSColector) GetMetrics() (Metrics, error) {
-	attrs, err := s.cli.GetQueueAttributes(s.queueURL, numberOfMessageInQueueAttrName)
-	if err != nil {
-		return nil, err
+	msgsInQueue := 0
+	for _, queueURL := range s.queueURLs {
+		n, err := s.getNumberOfMsgsInQueue(queueURL)
+		if err != nil {
+			return nil, err
+		}
+		msgsInQueue += n
 	}
-	return Metrics{
-		msgsInQueueMetricName: attrs[numberOfMessageInQueueAttrName],
-	}, nil
+	return Metrics{msgsInQueueMetricName: strconv.Itoa(msgsInQueue)}, nil
+}
+
+func (s *SQSColector) getNumberOfMsgsInQueue(queueURL string) (int, error) {
+	attrs, err := s.cli.GetQueueAttributes(queueURL, numberOfMessageInQueueAttrName)
+	if err != nil {
+		return -1, err
+	}
+	return strconv.Atoi(attrs[numberOfMessageInQueueAttrName])
 }
 
 func (s *SQSCruncher) CalcDesiredReplicas(m Metrics) (int, error) {
@@ -54,9 +64,9 @@ func (s *SQSCruncher) CalcDesiredReplicas(m Metrics) (int, error) {
 	return desiredPods, nil
 }
 
-func NewSQSColector(awsKey, awsSecret, awsRegion, queueURL string) Colector {
+func NewSQSColector(awsKey, awsSecret, awsRegion string, queueURLs ...string) Colector {
 	cli := aws.NewSQSClient(awsKey, awsSecret, awsRegion)
-	return &SQSColector{queueURL: queueURL, cli: cli}
+	return &SQSColector{queueURLs: queueURLs, cli: cli}
 }
 
 func NewSQSCruncher(max, min, msgsPerPod int) Cruncher {
@@ -68,7 +78,7 @@ func NewSQSController(awsKey, awsSecret, awsRegion, confJSON string) (*Controlle
 	if err := json.Unmarshal([]byte(confJSON), conf); err != nil {
 		return nil, err
 	}
-	colector := NewSQSColector(awsKey, awsSecret, awsRegion, conf.QueueURL)
+	colector := NewSQSColector(awsKey, awsSecret, awsRegion, conf.QueueURLs...)
 	cruncher := NewSQSCruncher(conf.Max, conf.Min, conf.MsgsPerPod)
 	return NewController(colector, cruncher, conf.Namespace, conf.Deployment), nil
 }

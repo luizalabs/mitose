@@ -23,8 +23,8 @@ The specifics configuration fields are:
 
 Field | Description
 ----- | -----------
-queue_url | the complete endopoint of the queue
-msgs_per_pod | the desired number of msgs in queue per replica
+queue\_urls | a list of the complete endopoints of the queues
+msgs\_per\_pod | the desired number of msgs in queue per replica
 
 ## Example
 To configure a controller based on SQS queue size use the follow example:
@@ -35,7 +35,7 @@ To configure a controller based on SQS queue size use the follow example:
   "type": "sqs",
   "max": 5,
   "min": 1,
-  "queue_url": "https://sqs.us-east-1.amazonaws.com/XXXXXXX/XXXXXXX",
+  "queue_urls": ["https://sqs.us-east-1.amazonaws.com/XXXXXXX/XXXXXXX"],
   "msgs_per_pod": 2
 }
 ```
