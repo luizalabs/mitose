@@ -48,7 +48,8 @@ func main() {
 
 	ctx := context.Background()
 	g, ctx := errgroup.WithContext(ctx)
-	for _, c := range controllers {
+	for _, currentController := range controllers {
+		c := currentController
 		g.Go(func() error { return c.Run(ctx, interval) })
 	}
 	if err = g.Wait(); err != nil {
