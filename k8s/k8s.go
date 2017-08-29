@@ -25,6 +25,23 @@ func GetConfigMapData(namespace, configmap string) (map[string]string, error) {
 	return cm.Data, nil
 }
 
+func UpdateHPA(namespace, name string, min, max int) error {
+	kc, err := BuildClient()
+	if err != nil {
+		return err
+	}
+	hpaYaml, err := kc.AutoscalingV1().HorizontalPodAutoscalers(namespace).Get(name)
+	if err != nil {
+		return err
+	}
+	min32 := int32(min)
+	hpaYaml.Spec.MaxReplicas = int32(max)
+	hpaYaml.Spec.MinReplicas = &min32
+
+	_, err = kc.AutoscalingV1().HorizontalPodAutoscalers(namespace).Update(hpaYaml)
+	return err
+}
+
 func UpdateReplicasCount(namespace, deployment string, desiredReplicas int) error {
 	kc, err := BuildClient()
 	if err != nil {

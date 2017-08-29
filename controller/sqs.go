@@ -81,5 +81,5 @@ func NewSQSController(awsKey, awsSecret, awsRegion, confJSON string) (*Controlle
 	}
 	colector := NewSQSColector(awsKey, awsSecret, awsRegion, conf.QueueURLs...)
 	cruncher := NewSQSCruncher(conf.Max, conf.Min, conf.MsgsPerPod)
-	return NewController(colector, cruncher, conf.Namespace, conf.Deployment), nil
+	return NewController(colector, cruncher, conf.Namespace, conf.Deployment, conf.ScaleMethod), nil
 }

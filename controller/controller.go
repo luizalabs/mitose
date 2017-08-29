@@ -8,6 +8,8 @@ import (
 	"github.com/luizalabs/mitose/k8s"
 )
 
+const HPAScaleMethod = "HPA"
+
 type Metrics map[string]string
 
 type Colector interface {
@@ -19,10 +21,11 @@ type Cruncher interface {
 }
 
 type Controller struct {
-	colector   Colector
-	cruncher   Cruncher
-	namespace  string
-	deployment string
+	colector    Colector
+	cruncher    Cruncher
+	namespace   string
+	deployment  string
+	scaleMethod string
 }
 
 func (c *Controller) Run(ctx context.Context, interval time.Duration) error {
@@ -57,15 +60,19 @@ func (c *Controller) Exec() error {
 	return c.Autoscale(desiredReplicas)
 }
 
-func (c *Controller) Autoscale(desiredPods int) error {
-	return k8s.UpdateReplicasCount(c.namespace, c.deployment, desiredPods)
+func (c *Controller) Autoscale(desiredReplicas int) error {
+	if c.scaleMethod == HPAScaleMethod {
+		return k8s.UpdateHPA(c.namespace, c.deployment, desiredReplicas, desiredReplicas)
+	}
+	return k8s.UpdateReplicasCount(c.namespace, c.deployment, desiredReplicas)
 }
 
-func NewController(colector Colector, cruncher Cruncher, namespace, deployment string) *Controller {
+func NewController(colector Colector, cruncher Cruncher, namespace, deployment, scaleMethod string) *Controller {
 	return &Controller{
-		colector:   colector,
-		cruncher:   cruncher,
-		namespace:  namespace,
-		deployment: deployment,
+		colector:    colector,
+		cruncher:    cruncher,
+		namespace:   namespace,
+		deployment:  deployment,
+		scaleMethod: scaleMethod,
 	}
 }

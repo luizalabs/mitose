@@ -14,6 +14,7 @@ deployment | deployment name
 type | type of controller
 max | maximum number of replicas
 min | minimum number of replicas
+scale\_method | method of autoscaling (by editing `HPA` or editing `DEPLOY`)
 
 > Those fields are comom for each controller type.
 
