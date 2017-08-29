@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"math"
 	"strconv"
 
 	"github.com/luizalabs/mitose/aws"
@@ -55,13 +56,13 @@ func (s *SQSCruncher) CalcDesiredReplicas(m Metrics) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	desiredPods := msgsInQueue / s.msgsPerPod
-	if desiredPods > s.max {
+	desiredPods := float64(msgsInQueue) / float64(s.msgsPerPod)
+	if desiredPods > float64(s.max) {
 		return s.max, nil
-	} else if desiredPods < s.min {
+	} else if desiredPods < float64(s.min) {
 		return s.min, nil
 	}
-	return desiredPods, nil
+	return int(math.Ceil(desiredPods)), nil
 }
 
 func NewSQSColector(awsKey, awsSecret, awsRegion string, queueURLs ...string) Colector {
