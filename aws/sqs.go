@@ -13,7 +13,8 @@ func (s *SQSClient) GetQueueAttributes(queueURL string, attributes ...string) (m
 	cli := sqs.New(session.New(), s.newConfig())
 
 	var attrList []*string
-	for _, a := range attributes {
+	for _, attr := range attributes {
+		a := attr
 		attrList = append(attrList, &a)
 	}
 

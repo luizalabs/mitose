@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	numberOfMessageInQueueAttrName = "ApproximateNumberOfMessages"
-	msgsInQueueMetricName          = "msgsInQueue"
+	numberOfMessagesInQueueAttrName       = "ApproximateNumberOfMessages"
+	numberOfMessagesInFlightQueueAttrName = "ApproximateNumberOfMessagesNotVisible"
+	msgsInQueueMetricName                 = "msgsInQueue"
 )
 
 type SQSControlerConfig struct {
@@ -44,11 +45,23 @@ func (s *SQSColector) GetMetrics() (Metrics, error) {
 }
 
 func (s *SQSColector) getNumberOfMsgsInQueue(queueURL string) (int, error) {
-	attrs, err := s.cli.GetQueueAttributes(queueURL, numberOfMessageInQueueAttrName)
+	attrs, err := s.cli.GetQueueAttributes(
+		queueURL,
+		numberOfMessagesInQueueAttrName,
+		numberOfMessagesInFlightQueueAttrName,
+	)
 	if err != nil {
 		return -1, err
 	}
-	return strconv.Atoi(attrs[numberOfMessageInQueueAttrName])
+	visible, err := strconv.Atoi(attrs[numberOfMessagesInQueueAttrName])
+	if err != nil {
+		return -1, err
+	}
+	inFlight, err := strconv.Atoi(attrs[numberOfMessagesInFlightQueueAttrName])
+	if err != nil {
+		return -1, err
+	}
+	return visible + inFlight, nil
 }
 
 func (s *SQSCruncher) CalcDesiredReplicas(m Metrics) (int, error) {
