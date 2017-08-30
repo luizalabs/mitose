@@ -1,5 +1,5 @@
 # Mitose
-Easy Kubernetes autoscaler controler.
+Easy Kubernetes autoscaler controller.
 ![mitose](http://biologianet.uol.com.br/upload/conteudo/images/na-mitose-uma-celula-mae-origina-duas-celulas-filhas-com-mesmo-numero-cromossomos-5964d9200973d.jpg)
 
 ## Controllers Configuration
@@ -45,3 +45,10 @@ using the `kubectl create configmap` command, f.ex:
 ```shell
 $ kubectl create configmap config --from-file=target.json --namespace=mitose
 ```
+
+## TODO
+- Reboot controllers (to update configurations).
+- Interval by controller.
+- Admin to _CRUD_ the configs.
+- Kubernetes Deploy Yaml.
+- Get namespace by env.
