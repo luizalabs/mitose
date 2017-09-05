@@ -11,6 +11,7 @@ import (
 
 	"github.com/luizalabs/mitose/config"
 	"github.com/luizalabs/mitose/controller"
+	"github.com/luizalabs/mitose/gauge"
 	"github.com/luizalabs/mitose/k8s"
 )
 
@@ -52,6 +53,8 @@ func main() {
 		c := currentController
 		g.Go(func() error { return c.Run(ctx, interval) })
 	}
+	g.Go(gauge.Run)
+
 	if err = g.Wait(); err != nil {
 		printErrorAndExit("running controllers", err)
 	}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/luizalabs/mitose/aws"
 	"github.com/luizalabs/mitose/config"
+	"github.com/luizalabs/mitose/gauge"
 )
 
 const (
@@ -24,12 +25,14 @@ type SQSControlerConfig struct {
 type SQSColector struct {
 	queueURLs []string
 	cli       *aws.SQSClient
+	gMetrics  gauge.Gauge
 }
 
 type SQSCruncher struct {
 	max        int
 	min        int
 	msgsPerPod int
+	gMetrics   gauge.Gauge
 }
 
 func (s *SQSColector) GetMetrics() (Metrics, error) {
@@ -61,30 +64,42 @@ func (s *SQSColector) getNumberOfMsgsInQueue(queueURL string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	return visible + inFlight, nil
+	msgsInQueue := visible + inFlight
+	s.gMetrics.Set(float64(msgsInQueue))
+	return msgsInQueue, nil
 }
 
 func (s *SQSCruncher) CalcDesiredReplicas(m Metrics) (int, error) {
+	desiredReplicas, err := s.calcReplicas(m)
+	if err != nil {
+		return -1, err
+	}
+	s.gMetrics.Set(float64(desiredReplicas))
+	return desiredReplicas, nil
+}
+
+func (s *SQSCruncher) calcReplicas(m Metrics) (int, error) {
 	msgsInQueue, err := strconv.Atoi(m[msgsInQueueMetricName])
 	if err != nil {
 		return -1, err
 	}
-	desiredPods := float64(msgsInQueue) / float64(s.msgsPerPod)
-	if desiredPods > float64(s.max) {
+	desiredReplicas := float64(msgsInQueue) / float64(s.msgsPerPod)
+	if desiredReplicas > float64(s.max) {
 		return s.max, nil
-	} else if desiredPods < float64(s.min) {
+	} else if desiredReplicas < float64(s.min) {
 		return s.min, nil
 	}
-	return int(math.Ceil(desiredPods)), nil
+	desiredReplicas = math.Ceil(desiredReplicas)
+	return int(desiredReplicas), nil
 }
 
-func NewSQSColector(awsKey, awsSecret, awsRegion string, queueURLs ...string) Colector {
+func NewSQSColector(g gauge.Gauge, awsKey, awsSecret, awsRegion string, queueURLs ...string) Colector {
 	cli := aws.NewSQSClient(awsKey, awsSecret, awsRegion)
-	return &SQSColector{queueURLs: queueURLs, cli: cli}
+	return &SQSColector{queueURLs: queueURLs, cli: cli, gMetrics: g}
 }
 
-func NewSQSCruncher(max, min, msgsPerPod int) Cruncher {
-	return &SQSCruncher{max: max, min: min, msgsPerPod: msgsPerPod}
+func NewSQSCruncher(g gauge.Gauge, max, min, msgsPerPod int) Cruncher {
+	return &SQSCruncher{max: max, min: min, msgsPerPod: msgsPerPod, gMetrics: g}
 }
 
 func NewSQSController(awsKey, awsSecret, awsRegion, confJSON string) (*Controller, error) {
@@ -92,7 +107,10 @@ func NewSQSController(awsKey, awsSecret, awsRegion, confJSON string) (*Controlle
 	if err := json.Unmarshal([]byte(confJSON), conf); err != nil {
 		return nil, err
 	}
-	colector := NewSQSColector(awsKey, awsSecret, awsRegion, conf.QueueURLs...)
-	cruncher := NewSQSCruncher(conf.Max, conf.Min, conf.MsgsPerPod)
+	gColector := gauge.NewPrometheusGauge(conf.Namespace, conf.Deployment, "SQS")
+	colector := NewSQSColector(gColector, awsKey, awsSecret, awsRegion, conf.QueueURLs...)
+
+	gCruncher := gauge.NewPrometheusGauge(conf.Namespace, conf.Deployment, "CRUNCHER")
+	cruncher := NewSQSCruncher(gCruncher, conf.Max, conf.Min, conf.MsgsPerPod)
 	return NewController(colector, cruncher, conf.Namespace, conf.Deployment, conf.ScaleMethod), nil
 }
