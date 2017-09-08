@@ -49,6 +49,6 @@ $ kubectl create configmap config --from-file=target.json --namespace=mitose
 ## TODO
 - Reboot controllers (to update configurations).
 - Interval by controller.
+- AWS Keys by controller
 - Admin to _CRUD_ the configs.
 - Kubernetes Deploy Yaml.
-- Get namespace by env.

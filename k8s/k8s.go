@@ -1,9 +1,13 @@
 package k8s
 
 import (
+	"io/ioutil"
+
 	"k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 )
+
+const namespaceSecret = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"
 
 func BuildClient() (*kubernetes.Clientset, error) {
 	k8sConfig, err := restclient.InClusterConfig()
@@ -56,4 +60,9 @@ func UpdateReplicasCount(namespace, deployment string, desiredReplicas int) erro
 	deployYaml.Spec.Replicas = &dp
 	_, err = kc.Deployments(namespace).Update(deployYaml)
 	return err
+}
+
+func GetCurrentNamespace() (string, error) {
+	ns, err := ioutil.ReadFile(namespaceSecret)
+	return string(ns), err
 }
