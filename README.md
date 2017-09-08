@@ -24,6 +24,9 @@ The specifics configuration fields are:
 
 Field | Description
 ----- | -----------
+key | aws credential key
+secret | aws credential secret
+region | aws region
 queue\_urls | a list of the complete endopoints of the queues
 msgs\_per\_pod | the desired number of msgs in queue per replica
 
@@ -34,6 +37,9 @@ To configure a controller based on SQS queue size use the follow example:
   "namespace": "target",
   "deployment": "target",
   "type": "sqs",
+  "key: "XXXX",
+  "secret": "XXXX",
+  "region": "us-east-1",
   "max": 5,
   "min": 1,
   "queue_urls": ["https://sqs.us-east-1.amazonaws.com/XXXXXXX/XXXXXXX"],
@@ -49,6 +55,5 @@ $ kubectl create configmap config --from-file=target.json --namespace=mitose
 ## TODO
 - Reboot controllers (to update configurations).
 - Interval by controller.
-- AWS Keys by controller
 - Admin to _CRUD_ the configs.
 - Kubernetes Deploy Yaml.

@@ -16,14 +16,11 @@ import (
 )
 
 func main() {
-	awsKey := os.Getenv("AWS_KEY")
-	awsSecret := os.Getenv("AWS_SECRET")
-	awsRegion := os.Getenv("AWS_REGION")
 	defaultInterval := os.Getenv("INTERVAL")
 
 	currentNS, err := k8s.GetCurrentNamespace()
 	if err != nil {
-		printErrorAndExit("getting current namespace name:", err)
+		printErrorAndExit("getting current namespace name", err)
 	}
 	configData, err := k8s.GetConfigMapData(currentNS, "config")
 	if err != nil {
@@ -38,7 +35,7 @@ func main() {
 		}
 		switch conf.Type {
 		case "sqs":
-			c, err := controller.NewSQSController(awsKey, awsSecret, awsRegion, v)
+			c, err := controller.NewSQSController(v)
 			if err != nil {
 				printErrorAndExit("creating controller", err)
 			}
