@@ -21,7 +21,11 @@ func main() {
 	awsRegion := os.Getenv("AWS_REGION")
 	defaultInterval := os.Getenv("INTERVAL")
 
-	configData, err := k8s.GetConfigMapData("mitose", "config")
+	currentNS, err := k8s.GetCurrentNamespace()
+	if err != nil {
+		printErrorAndExit("getting current namespace name:", err)
+	}
+	configData, err := k8s.GetConfigMapData(currentNS, "config")
 	if err != nil {
 		printErrorAndExit("getting config from config maps", err)
 	}
