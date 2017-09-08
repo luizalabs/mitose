@@ -26,15 +26,16 @@ type Controller struct {
 	namespace   string
 	deployment  string
 	scaleMethod string
+	interval    time.Duration
 }
 
-func (c *Controller) Run(ctx context.Context, interval time.Duration) error {
+func (c *Controller) Run(ctx context.Context) error {
 	fmt.Printf("start controller for deployment %s (namespace %s)\n", c.deployment, c.namespace)
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(interval):
+		case <-time.After(c.interval):
 			if err := c.Exec(); err != nil {
 				return err
 			}
@@ -67,12 +68,17 @@ func (c *Controller) Autoscale(desiredReplicas int) error {
 	return k8s.UpdateReplicasCount(c.namespace, c.deployment, desiredReplicas)
 }
 
-func NewController(colector Colector, cruncher Cruncher, namespace, deployment, scaleMethod string) *Controller {
+func NewController(colector Colector, cruncher Cruncher, namespace, deployment, scaleMethod, interval string) (*Controller, error) {
+	convertedInterval, err := time.ParseDuration(interval)
+	if err != nil {
+		return nil, err
+	}
 	return &Controller{
 		colector:    colector,
 		cruncher:    cruncher,
 		namespace:   namespace,
 		deployment:  deployment,
 		scaleMethod: scaleMethod,
-	}
+		interval:    convertedInterval,
+	}, nil
 }

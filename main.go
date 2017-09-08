@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"time"
 
 	"golang.org/x/sync/errgroup"
 
@@ -16,8 +15,6 @@ import (
 )
 
 func main() {
-	defaultInterval := os.Getenv("INTERVAL")
-
 	currentNS, err := k8s.GetCurrentNamespace()
 	if err != nil {
 		printErrorAndExit("getting current namespace name", err)
@@ -43,16 +40,11 @@ func main() {
 		}
 	}
 
-	interval, err := time.ParseDuration(defaultInterval)
-	if err != nil {
-		printErrorAndExit("parsing time", err)
-	}
-
 	ctx := context.Background()
 	g, ctx := errgroup.WithContext(ctx)
 	for _, currentController := range controllers {
 		c := currentController
-		g.Go(func() error { return c.Run(ctx, interval) })
+		g.Go(func() error { return c.Run(ctx) })
 	}
 	g.Go(gauge.Run)
 

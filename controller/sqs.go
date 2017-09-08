@@ -115,5 +115,13 @@ func NewSQSController(confJSON string) (*Controller, error) {
 
 	gCruncher := gauge.NewPrometheusGauge(conf.Namespace, conf.Deployment, "CRUNCHER")
 	cruncher := NewSQSCruncher(gCruncher, conf.Max, conf.Min, conf.MsgsPerPod)
-	return NewController(colector, cruncher, conf.Namespace, conf.Deployment, conf.ScaleMethod), nil
+
+	return NewController(
+		colector,
+		cruncher,
+		conf.Namespace,
+		conf.Deployment,
+		conf.ScaleMethod,
+		conf.Interval,
+	)
 }

@@ -7,4 +7,5 @@ type Config struct {
 	Max         int    `json:"max"`
 	Min         int    `json:"min"`
 	ScaleMethod string `json:"scale_method"`
+	Interval    string `json:"interval"`
 }

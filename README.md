@@ -15,6 +15,7 @@ type | type of controller
 max | maximum number of replicas
 min | minimum number of replicas
 scale\_method | method of autoscaling (by editing `HPA` or editing `DEPLOY`)
+interval | controller running interval (e.g. `1m`)
 
 > Those fields are comom for each controller type.
 
@@ -37,11 +38,13 @@ To configure a controller based on SQS queue size use the follow example:
   "namespace": "target",
   "deployment": "target",
   "type": "sqs",
+  "interval": "1m",
+  "scale_method": "DEPLOY",
+  "max": 5,
+  "min": 1,
   "key: "XXXX",
   "secret": "XXXX",
   "region": "us-east-1",
-  "max": 5,
-  "min": 1,
   "queue_urls": ["https://sqs.us-east-1.amazonaws.com/XXXXXXX/XXXXXXX"],
   "msgs_per_pod": 2
 }
@@ -54,6 +57,5 @@ $ kubectl create configmap config --from-file=target.json --namespace=mitose
 
 ## TODO
 - Reboot controllers (to update configurations).
-- Interval by controller.
 - Admin to _CRUD_ the configs.
 - Kubernetes Deploy Yaml.
