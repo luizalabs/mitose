@@ -42,7 +42,7 @@ To configure a controller based on SQS queue size use the follow example:
   "scale_method": "DEPLOY",
   "max": 5,
   "min": 1,
-  "key: "XXXX",
+  "key": "XXXX",
   "secret": "XXXX",
   "region": "us-east-1",
   "queue_urls": ["https://sqs.us-east-1.amazonaws.com/XXXXXXX/XXXXXXX"],
