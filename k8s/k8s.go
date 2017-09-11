@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 
 	"k8s.io/client-go/kubernetes"
+	k8sv1 "k8s.io/client-go/pkg/api/v1"
 	restclient "k8s.io/client-go/rest"
 )
 
@@ -60,6 +61,26 @@ func UpdateReplicasCount(namespace, deployment string, desiredReplicas int) erro
 	deployYaml.Spec.Replicas = &dp
 	_, err = kc.Deployments(namespace).Update(deployYaml)
 	return err
+}
+
+func WatchConfigMap(namespace string) (<-chan struct{}, error) {
+	kc, err := BuildClient()
+	if err != nil {
+		return nil, err
+	}
+	watcher, err := kc.ConfigMaps(namespace).Watch(k8sv1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	c := make(chan struct{})
+	go func() {
+		defer close(c)
+		for _ = range watcher.ResultChan() {
+			c <- struct{}{}
+		}
+	}()
+	return c, nil
 }
 
 func GetCurrentNamespace() (string, error) {

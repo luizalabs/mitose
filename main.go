@@ -19,38 +19,56 @@ func main() {
 	if err != nil {
 		printErrorAndExit("getting current namespace name", err)
 	}
+	configWatcher, err := k8s.WatchConfigMap(currentNS)
+	if err != nil {
+		printErrorAndExit("watching configmaps", err)
+	}
+	<-configWatcher // expected at least one config map
+
+	go gauge.Run()
+	for {
+		ctx, cancel := context.WithCancel(context.Background())
+		errChan := make(chan error)
+		go func() { errChan <- run(ctx, currentNS) }()
+
+		select {
+		case <-configWatcher:
+			fmt.Println("rebuilding controllers")
+			cancel()
+		case err := <-errChan:
+			if err != nil && err != context.Canceled {
+				printErrorAndExit("running controllers", err)
+			}
+		}
+	}
+}
+
+func run(ctx context.Context, currentNS string) error {
 	configData, err := k8s.GetConfigMapData(currentNS, "config")
 	if err != nil {
-		printErrorAndExit("getting config from config maps", err)
+		return err
 	}
 
 	controllers := make([]*controller.Controller, 0)
 	for _, v := range configData {
 		conf := new(config.Config)
 		if err := json.Unmarshal([]byte(v), conf); err != nil {
-			printErrorAndExit("unmarshing json", err)
+			return err
 		}
-		switch conf.Type {
-		case "sqs":
-			c, err := controller.NewSQSController(v)
-			if err != nil {
-				printErrorAndExit("creating controller", err)
-			}
-			controllers = append(controllers, c)
+		c, err := controller.Factory(conf.Type, v)
+		if err != nil {
+			return err
 		}
+		controllers = append(controllers, c)
 	}
 
-	ctx := context.Background()
 	g, ctx := errgroup.WithContext(ctx)
 	for _, currentController := range controllers {
 		c := currentController
 		g.Go(func() error { return c.Run(ctx) })
 	}
-	g.Go(gauge.Run)
 
-	if err = g.Wait(); err != nil {
-		printErrorAndExit("running controllers", err)
-	}
+	return g.Wait()
 }
 
 func printErrorAndExit(phase string, err error) {
