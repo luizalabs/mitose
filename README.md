@@ -19,6 +19,9 @@ interval | controller running interval (e.g. `1m`)
 
 > Those fields are comom for each controller type.
 
+You don't need to restart mitose when you change a configmap,
+because mitose will rebuild its controllers on each configmap change.
+
 ### SQS Queue Size Controller
 There is a mitose controller bases on AWS SQS queue size.
 The specifics configuration fields are:
@@ -56,6 +59,6 @@ $ kubectl create configmap config --from-file=target.json --namespace=mitose
 ```
 
 ## TODO
-- Reboot controllers (to update configurations).
+- Tests
 - Admin to _CRUD_ the configs.
 - Kubernetes Deploy Yaml.

@@ -22,7 +22,7 @@ func (p *PrometheusGauge) Set(metric float64) error {
 	return nil
 }
 
-func NewPrometheusGauge(namespace, deploy, metricType string) Gauge {
+func NewPrometheusGauge(namespace, deploy, metricType string) (Gauge, error) {
 	g := prometheus.NewGauge(prometheus.GaugeOpts{
 		Name: "mitose",
 		Help: "Mitose autoscaller",
@@ -32,8 +32,12 @@ func NewPrometheusGauge(namespace, deploy, metricType string) Gauge {
 			"metric_type": metricType,
 		},
 	})
-	prometheus.MustRegister(g)
-	return &PrometheusGauge{pg: g}
+	if err := prometheus.Register(g); err != nil {
+		if _, ok := err.(prometheus.AlreadyRegisteredError); !ok {
+			return nil, err
+		}
+	}
+	return &PrometheusGauge{pg: g}, nil
 }
 
 func Run() error {
