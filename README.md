@@ -2,6 +2,13 @@
 Easy Kubernetes autoscaler controller.
 ![mitose](http://biologianet.uol.com.br/upload/conteudo/images/na-mitose-uma-celula-mae-origina-duas-celulas-filhas-com-mesmo-numero-cromossomos-5964d9200973d.jpg)
 
+## Install
+To install mitose in your k8s cluster just run:
+```
+$ kubectl create -f mitose-app.yaml
+```
+> We recommended you to use a diferent namespace
+
 ## Controllers Configuration
 The Mitose controllers are configured by kubernetes [configmaps](https://kubernetes.io/docs/tasks/configure-pod-container/configmap/).
 Each entry on configmap represents a deployment to watch.
@@ -57,8 +64,16 @@ using the `kubectl create configmap` command, f.ex:
 ```shell
 $ kubectl create configmap config --from-file=target.json --namespace=mitose
 ```
+## Prometheus metrics handler configuration
+To expose mitose metrics to prometheus you need to expose a service to deploy
+```
+$ kubectl expose deployment mitose --type=ClusterIP --port=5000 --namespace mitose
+```
+and add the annotation `prometheus.io/scrape: "true"` on this service.
+Mitose will start a http server on the port configured by environment variable `$PORT`.
+
+> If you deployed mitose using the `mitose-app.yaml` file, you don't need that.
 
 ## TODO
 - Tests
 - Admin to _CRUD_ the configs.
-- Kubernetes Deploy Yaml.

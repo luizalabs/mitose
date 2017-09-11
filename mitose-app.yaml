@@ -1,0 +1,34 @@
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    run: mitose
+  name: mitose
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: mitose
+    spec:
+      containers:
+      - name: mitose
+        image: luizalabs/mitose:0.0.1
+        env:
+        - name: PORT
+          value: "5000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+  name: mitose
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 5000
+  selector:
+    run: mitose
+  type: ClusterIP
