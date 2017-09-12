@@ -32,7 +32,10 @@ func main() {
 		go func() { errChan <- run(ctx, currentNS) }()
 
 		select {
-		case <-configWatcher:
+		case err := <-configWatcher:
+			if err != nil {
+				printErrorAndExit("watching configmap", err)
+			}
 			fmt.Println("rebuilding controllers")
 			cancel()
 		case err := <-errChan:
