@@ -1,10 +1,12 @@
 package k8s
 
 import (
+	"errors"
 	"io/ioutil"
 
 	"k8s.io/client-go/kubernetes"
 	k8sv1 "k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/pkg/watch"
 	restclient "k8s.io/client-go/rest"
 )
 
@@ -63,7 +65,7 @@ func UpdateReplicasCount(namespace, deployment string, desiredReplicas int) erro
 	return err
 }
 
-func WatchConfigMap(namespace string) (<-chan struct{}, error) {
+func WatchConfigMap(namespace string) (<-chan error, error) {
 	kc, err := BuildClient()
 	if err != nil {
 		return nil, err
@@ -73,11 +75,15 @@ func WatchConfigMap(namespace string) (<-chan struct{}, error) {
 		return nil, err
 	}
 
-	c := make(chan struct{})
+	c := make(chan error)
 	go func() {
 		defer close(c)
-		for _ = range watcher.ResultChan() {
-			c <- struct{}{}
+		for e := range watcher.ResultChan() {
+			if e.Type == watch.Error {
+				c <- errors.New("error reading configmap")
+			} else {
+				c <- nil
+			}
 		}
 	}()
 	return c, nil
