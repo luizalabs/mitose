@@ -33,13 +33,17 @@ func main() {
 		go func() { errChan <- run(ctx, currentNS) }()
 
 		select {
-		case err := <-configWatcher:
+		case err, ok := <-configWatcher:
+			if !ok {
+				printErrorAndExit("configmap channel is closed", err)
+			}
 			if err != nil {
 				printErrorAndExit("watching configmap", err)
 			}
 			log.Println("rebuilding controllers")
 			cancel()
 		case err := <-errChan:
+			log.Println("error received on errChan:", err)
 			if err != nil && err != context.Canceled {
 				printErrorAndExit("running controllers", err)
 			}
