@@ -47,6 +47,7 @@ func (s *SQSColector) GetMetrics() (Metrics, error) {
 		}
 		msgsInQueue += n
 	}
+	s.gMetrics.Set(float64(msgsInQueue))
 	return Metrics{msgsInQueueMetricName: strconv.Itoa(msgsInQueue)}, nil
 }
 
@@ -67,9 +68,7 @@ func (s *SQSColector) getNumberOfMsgsInQueue(queueURL string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	msgsInQueue := visible + inFlight
-	s.gMetrics.Set(float64(msgsInQueue))
-	return msgsInQueue, nil
+	return visible + inFlight, nil
 }
 
 func (s *SQSCruncher) CalcDesiredReplicas(m Metrics) (int, error) {
