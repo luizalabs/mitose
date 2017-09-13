@@ -2,7 +2,7 @@ package controller
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"time"
 
 	"github.com/luizalabs/mitose/k8s"
@@ -30,7 +30,7 @@ type Controller struct {
 }
 
 func (c *Controller) Run(ctx context.Context) error {
-	fmt.Printf("start controller for deployment %s (namespace %s)\n", c.deployment, c.namespace)
+	log.Printf("start controller for deployment %s (namespace %s)\n", c.deployment, c.namespace)
 	for {
 		select {
 		case <-ctx.Done():
@@ -52,7 +52,7 @@ func (c *Controller) Exec() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf(
+	log.Printf(
 		"Desired replicas %d for deployment %s (namespace %s)\n",
 		desiredReplicas,
 		c.deployment,

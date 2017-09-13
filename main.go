@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 	"os"
 
 	"golang.org/x/sync/errgroup"
@@ -36,7 +36,7 @@ func main() {
 			if err != nil {
 				printErrorAndExit("watching configmap", err)
 			}
-			fmt.Println("rebuilding controllers")
+			log.Println("rebuilding controllers")
 			cancel()
 		case err := <-errChan:
 			if err != nil && err != context.Canceled {
@@ -75,6 +75,6 @@ func run(ctx context.Context, currentNS string) error {
 }
 
 func printErrorAndExit(phase string, err error) {
-	fmt.Fprintf(os.Stderr, "error %s: %s", phase, err)
+	log.Fprintf(os.Stderr, "error %s: %s", phase, err)
 	os.Exit(2)
 }
