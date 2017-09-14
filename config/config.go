@@ -8,4 +8,5 @@ type Config struct {
 	Min         int    `json:"min"`
 	ScaleMethod string `json:"scale_method"`
 	Interval    string `json:"interval"`
+	Active      bool   `json:"active"`
 }

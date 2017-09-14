@@ -23,6 +23,7 @@ max | maximum number of replicas
 min | minimum number of replicas
 scale\_method | method of autoscaling (by editing `HPA` or editing `DEPLOY`)
 interval | controller running interval (e.g. `1m`)
+active | if this controller is active
 
 > Those fields are comom for each controller type.
 
@@ -52,6 +53,7 @@ To configure a controller based on SQS queue size use the follow example:
   "scale_method": "DEPLOY",
   "max": 5,
   "min": 1,
+  "active": true,
   "key": "XXXX",
   "secret": "XXXX",
   "region": "us-east-1",
