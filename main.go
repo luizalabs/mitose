@@ -68,6 +68,9 @@ func run(ctx context.Context, currentNS string) error {
 		if err := json.Unmarshal([]byte(v), conf); err != nil {
 			return err
 		}
+		if !conf.Active {
+			continue
+		}
 		c, err := controller.Factory(conf.Type, v)
 		if err != nil {
 			return err
