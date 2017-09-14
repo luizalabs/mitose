@@ -20,11 +20,7 @@ func main() {
 	if err != nil {
 		printErrorAndExit("getting current namespace name", err)
 	}
-	configWatcher, err := k8s.WatchConfigMap(currentNS)
-	if err != nil {
-		printErrorAndExit("watching configmaps", err)
-	}
-	<-configWatcher // expected at least one config map
+	configWatcher := getConfigWatcher(currentNS)
 
 	go gauge.Run()
 	for {
@@ -34,11 +30,11 @@ func main() {
 
 		select {
 		case err, ok := <-configWatcher:
-			if !ok {
-				printErrorAndExit("configmap channel is closed", err)
-			}
 			if err != nil {
 				printErrorAndExit("watching configmap", err)
+			}
+			if !ok {
+				configWatcher = getConfigWatcher(currentNS)
 			}
 			log.Println("rebuilding controllers")
 			cancel()
@@ -49,6 +45,15 @@ func main() {
 			}
 		}
 	}
+}
+
+func getConfigWatcher(namespace string) <-chan error {
+	configWatcher, err := k8s.WatchConfigMap(namespace)
+	if err != nil {
+		printErrorAndExit("watching configmaps", err)
+	}
+	<-configWatcher // expected at least one config map
+	return configWatcher
 }
 
 func run(ctx context.Context, currentNS string) error {
