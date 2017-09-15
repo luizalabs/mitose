@@ -110,16 +110,10 @@ func NewSQSController(confJSON string) (*Controller, error) {
 		return nil, err
 	}
 
-	gColector, err := gauge.NewPrometheusGauge(conf.Namespace, conf.Deployment, "SQS")
-	if err != nil {
-		return nil, err
-	}
+	gColector := gauge.NewPrometheusGauge(conf.Namespace, conf.Deployment, "SQS")
 	colector := NewSQSColector(gColector, conf.Key, conf.Secret, conf.Region, conf.QueueURLs...)
 
-	gCruncher, err := gauge.NewPrometheusGauge(conf.Namespace, conf.Deployment, "CRUNCHER")
-	if err != nil {
-		return nil, err
-	}
+	gCruncher := gauge.NewPrometheusGauge(conf.Namespace, conf.Deployment, "CRUNCHER")
 	cruncher := NewSQSCruncher(gCruncher, conf.Max, conf.Min, conf.MsgsPerPod)
 
 	return NewController(
