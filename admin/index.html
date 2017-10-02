@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=utf-8 />
+        <title>M I T O S E</title>
+    </head>
+    <body>
+        <div class="container">
+            <h1>MITOSE - Easy Kubernetes Autoscaler Controller</h1>
+            {{ range $key, $value := . }}
+                <h3> {{ $key }} </h3>
+                <form method="post" action="/admin" id="{{ $key }}">
+                    <input type="hidden" name="name" id="name" value="{{ $key }}">
+                    <label for="max">Max</label>
+                    <input type="text" name="max" id="max" value="{{ $value.Max }}"></br>
+                    <label for="min">Min</label>
+                    <input type="text" name="min" id="min" value="{{ $value.Min }}"></br>
+                    <button type="submit">save</button>
+                </form>
+            {{ end }}
+        </div>
+    </body>
+</html>

@@ -7,6 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/kubernetes"
+	apiv1 "k8s.io/client-go/pkg/api/v1"
 	restclient "k8s.io/client-go/rest"
 )
 
@@ -96,6 +97,18 @@ func WatchConfigMap(namespace string) (<-chan error, error) {
 		}
 	}()
 	return c, nil
+}
+
+func UpdateConfigMap(namespace string, configmap map[string]string) error {
+	kc, err := ClientBuilder()
+	if err != nil {
+		return err
+	}
+	_, err = kc.CoreV1().ConfigMaps(namespace).Update(&apiv1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{Name: "config"},
+		Data:       configmap,
+	})
+	return err
 }
 
 func GetCurrentNamespace() (string, error) {

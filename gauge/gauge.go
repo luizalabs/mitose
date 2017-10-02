@@ -3,7 +3,6 @@ package gauge
 import (
 	"fmt"
 	"net/http"
-	"os"
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -60,11 +59,6 @@ func getOrCreateGauge(namespace, deploy, metricType string) prometheus.Gauge {
 	return g
 }
 
-func Run() error {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "5000"
-	}
-	http.Handle("/metrics", promhttp.Handler())
-	return http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
+func NewGaugeHandler() http.Handler {
+	return promhttp.Handler()
 }

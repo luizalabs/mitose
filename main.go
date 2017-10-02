@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"golang.org/x/sync/errgroup"
 
+	"github.com/luizalabs/mitose/admin"
 	"github.com/luizalabs/mitose/config"
 	"github.com/luizalabs/mitose/controller"
 	"github.com/luizalabs/mitose/gauge"
@@ -22,7 +24,7 @@ func main() {
 	}
 	configWatcher := getConfigWatcher(currentNS)
 
-	go gauge.Run()
+	go runHTTP()
 	for {
 		ctx, cancel := context.WithCancel(context.Background())
 		errChan := make(chan error)
@@ -85,6 +87,20 @@ func run(ctx context.Context, currentNS string) error {
 	}
 
 	return g.Wait()
+}
+
+func runHTTP() error {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "5000"
+	}
+	adminHandler, err := admin.NewHandler()
+	if err != nil {
+		panic(fmt.Sprintf("running admin handlers: %v", err))
+	}
+	http.Handle("/metrics", gauge.NewGaugeHandler())
+	http.Handle("/admin", adminHandler)
+	return http.ListenAndServe(fmt.Sprintf(":%s", port), nil)
 }
 
 func printErrorAndExit(phase string, err error) {

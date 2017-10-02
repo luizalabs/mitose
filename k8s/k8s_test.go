@@ -39,6 +39,7 @@ func TestK8sPkg(t *testing.T) {
 		testFunc func(t *testing.T)
 	}{
 		{"TestGetConfigMapData", testGetConfigMapData},
+		{"TestUpdateConfigMapData", testUpdateConfigMapData},
 		{"TestUpdateHPA", testUpdateHPA},
 		{"TestUpdateReplicasCount", testUpdateReplicasCount},
 		{"TestWatchConfigMap", testWatchConfigMap},
@@ -71,6 +72,33 @@ func testGetConfigMapData(t *testing.T) {
 	}
 	if cm[expectedKey] != expectedValue {
 		t.Errorf("expected %s, got %s", expectedValue, cm[expectedKey])
+	}
+}
+
+func testUpdateConfigMapData(t *testing.T) {
+	fakeNS := "fakeNS"
+	fakeKey := "fakeKey"
+	firstValue := "fakeValue"
+	expectedValue := "newValue"
+
+	fakeCM := &v1.ConfigMap{Data: map[string]string{fakeKey: firstValue}}
+	fakeCM.Name = "config"
+	if _, err := fakeK8sClient.CoreV1().ConfigMaps(fakeNS).Create(fakeCM); err != nil {
+		t.Fatal("error creating fake config map", err)
+	}
+
+	err := UpdateConfigMap(fakeNS, map[string]string{fakeKey: expectedValue})
+	if err != nil {
+		t.Fatal("error updating config map", err)
+	}
+
+	cm, err := fakeK8sClient.CoreV1().ConfigMaps(fakeNS).Get(fakeCM.Name, metav1.GetOptions{})
+	if err != nil {
+		t.Fatal("error getting config map", err)
+	}
+
+	if cm.Data[fakeKey] != expectedValue {
+		t.Errorf("expected %s, got %s", expectedValue, cm.Data[fakeKey])
 	}
 }
 
