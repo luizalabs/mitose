@@ -1,9 +1,10 @@
-FROM golang:1.8
-
-RUN mkdir -p /go/src/github.com/luizalabs/mitose
+FROM golang:1.8 as builder
 WORKDIR /go/src/github.com/luizalabs/mitose
-
 ADD . /go/src/github.com/luizalabs/mitose
-RUN go install
+RUN CGO_ENABLED=0 go build -o mitose
 
-CMD ["mitose"]
+FROM alpine:3.7
+RUN apk update && apk add ca-certificates && rm -rf /var/cache/apk/*
+WORKDIR /app
+COPY --from=builder /go/src/github.com/luizalabs/mitose/mitose .
+CMD ["./mitose"]
