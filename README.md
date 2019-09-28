@@ -61,6 +61,29 @@ To configure a controller based on SQS queue size use the follow example:
   "msgs_per_pod": 2
 }
 ```
+
+Or to configure a controller based on GCP's Pub/Sub:
+
+```json
+{
+  "namespace": "target",
+  "deployment": "target",
+  "type": "pubsub",
+  "interval": "1m",
+  "scale_method": "DEPLOY",
+  "max": 5,
+  "min": 1,
+  "active": true,
+  "google_application_credentials": "XXXX",
+  "region": "us-east1",
+  "subscription_ids": ["mysub"],
+  "project": "my-gcp-project",
+  "msgs_per_pod": 2
+}
+```
+
+`google_application_credentials` should be the location of a `credentials.json` file provided by GCP.
+
 Save that content as `target.json` file and create a configmap
 using the `kubectl create configmap` command, f.ex:
 ```shell

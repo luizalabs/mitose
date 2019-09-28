@@ -8,7 +8,12 @@ import (
 	"github.com/luizalabs/mitose/k8s"
 )
 
-const HPAScaleMethod = "HPA"
+const (
+	numberOfMessagesInQueueAttrName       = "ApproximateNumberOfMessages"
+	numberOfMessagesInFlightQueueAttrName = "ApproximateNumberOfMessagesNotVisible"
+	msgsInQueueMetricName                 = "msgsInQueue"
+	HPAScaleMethod                        = "HPA"
+)
 
 type Metrics map[string]string
 
