@@ -10,12 +10,6 @@ import (
 	"github.com/luizalabs/mitose/gauge"
 )
 
-const (
-	numberOfMessagesInQueueAttrName       = "ApproximateNumberOfMessages"
-	numberOfMessagesInFlightQueueAttrName = "ApproximateNumberOfMessagesNotVisible"
-	msgsInQueueMetricName                 = "msgsInQueue"
-)
-
 type SQSControlerConfig struct {
 	config.Config
 	Key        string   `json:"key"`
