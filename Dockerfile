@@ -1,4 +1,4 @@
-FROM golang:1.8 as builder
+FROM golang:1.11 as builder
 WORKDIR /go/src/github.com/luizalabs/mitose
 ADD . /go/src/github.com/luizalabs/mitose
 RUN CGO_ENABLED=0 go build -o mitose
