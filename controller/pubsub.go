@@ -69,8 +69,8 @@ func (s *PubSubCruncher) calcReplicas(m Metrics) (int, error) {
 	return int(desiredReplicas), nil
 }
 
-func NewPubSubColector(g gauge.Gauge, googleApplicationCredentials, gcpRegion, gcpProject string, subscriptionIDs ...string) Colector {
-	cli := pubsub.NewPubSubClient(googleApplicationCredentials, gcpRegion, gcpProject)
+func NewPubSubColector(g gauge.Gauge, googleApplicationCredentials, gcpProject, gcpRegion string, subscriptionIDs ...string) Colector {
+	cli := pubsub.NewPubSubClient(googleApplicationCredentials, gcpProject, gcpRegion)
 	return &PubSubColector{subscriptionIDs: subscriptionIDs, cli: cli, gMetrics: g}
 }
 
@@ -85,7 +85,7 @@ func NewPubSubController(confJSON string) (*Controller, error) {
 	}
 
 	gColector := gauge.NewPrometheusGauge(conf.Namespace, conf.Deployment, "PubSub")
-	colector := NewPubSubColector(gColector, conf.GoogleApplicationCredentials, conf.Region, conf.Project, conf.SubscriptionIDs...)
+	colector := NewPubSubColector(gColector, conf.GoogleApplicationCredentials, conf.Project, conf.Region, conf.SubscriptionIDs...)
 
 	gCruncher := gauge.NewPrometheusGauge(conf.Namespace, conf.Deployment, "CRUNCHER")
 	cruncher := NewPubSubCruncher(gCruncher, conf.Max, conf.Min, conf.MsgsPerPod)
