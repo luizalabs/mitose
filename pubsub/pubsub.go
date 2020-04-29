@@ -26,14 +26,14 @@ func (m *GCPMetrics) GetNumOfUndeliveredMessages(subscriptionID string) (int, er
 		return -1, err
 	}
 	ctx := context.Background()
-	startTime := time.Now().UTC().Add(time.Minute * -1).Unix()
+	startTime := time.Now().UTC().Add(time.Minute * -5).Unix()
 	endTime := time.Now().UTC().Unix()
 
 	req := &monitoringpb.ListTimeSeriesRequest{
 		Name: "projects/" + m.projectID,
 		Filter: fmt.Sprintf(
-			"(metric.type=\"%s\" or metric.type=\"%s\") AND resource.label.subscription_id=\"%s\"",
-			undeliveredMessagesMetric, unackedMessagesMetric, subscriptionID,
+			"metric.type=\"%s\" AND resource.label.subscription_id=\"%s\"",
+			undeliveredMessagesMetric, subscriptionID,
 		),
 		Interval: &monitoringpb.TimeInterval{
 			StartTime: &timestamp.Timestamp{Seconds: startTime},
@@ -51,6 +51,8 @@ func (m *GCPMetrics) GetNumOfUndeliveredMessages(subscriptionID string) (int, er
 			return -1, fmt.Errorf("could not read time series value, %v ", err)
 		}
 		log.Printf("%+v\n", resp)
+		value := int(resp.Points[0].Value.GetInt64Value())
+		return value, nil
 	}
 
 	return 0, nil
