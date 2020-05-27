@@ -62,7 +62,7 @@ To configure a controller based on SQS queue size use the follow example:
 }
 ```
 
-Or to configure a controller based on GCP's Pub/Sub:
+To configure a controller based on GCP's Pub/Sub:
 
 ```json
 {
@@ -83,6 +83,26 @@ Or to configure a controller based on GCP's Pub/Sub:
 ```
 
 `google_application_credentials` should be the location of a `credentials.json` file provided by GCP.
+
+To configure a controller based on RabbitMQ queue size:
+
+```json
+{
+  "namespace": "target",
+  "deployment": "target",
+  "type": "rabbitmq",
+  "interval": "1m",
+  "scale_method": "DEPLOY",
+  "max": 5,
+  "min": 1,
+  "active": true,
+  "credentials": "XXXX",
+  "queue_urls": ["https://my-rabbitmq-domain/api/queues/vhost/queue-name"],
+  "msgs_per_pod": 2
+}
+```
+
+`credentials` should be the `user:password` of RabbitMQ encoded in base64 format.
 
 Save that content as `target.json` file and create a configmap
 using the `kubectl create configmap` command, f.ex:
