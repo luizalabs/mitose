@@ -9,6 +9,10 @@ import (
 type RabbitMQClient struct {
 }
 
+type RabbitMQResponse struct {
+	Messages float64 `json:"messages"`
+}
+
 func (r *RabbitMQClient) GetNumOfMessages(url, credentials string) (int, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
@@ -24,12 +28,12 @@ func (r *RabbitMQClient) GetNumOfMessages(url, credentials string) (int, error) 
 	}
 	defer res.Body.Close()
 
-	var result map[string]interface{}
+	rabbitMQResponse := new(RabbitMQResponse)
 
-	err = json.NewDecoder(res.Body).Decode(&result)
+	err = json.NewDecoder(res.Body).Decode(&rabbitMQResponse)
 	if err != nil {
 		return -1, err
 	}
 
-	return int(result["messages"].(float64)), nil
+	return int(rabbitMQResponse.Messages), nil
 }
