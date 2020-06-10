@@ -11,6 +11,8 @@
                 <h3> {{ $key }} </h3>
                 <form method="post" action="/admin" id="{{ $key }}">
                     <input type="hidden" name="name" id="name" value="{{ $key }}">
+                    <label for="type">Type</label>
+                    <input type="text" name="type" id="type" value="{{ $value.Type }}"></br>
                     <label for="max">Max</label>
                     <input type="text" name="max" id="max" value="{{ $value.Max }}"></br>
                     <label for="min">Min</label>
