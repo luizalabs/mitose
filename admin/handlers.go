@@ -56,25 +56,60 @@ func (h *Handler) Post(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sqsConf := new(controller.SQSControlerConfig)
-	if err := json.Unmarshal([]byte(cm[confName]), sqsConf); err != nil {
+	var min, max int
+	if min, err = strconv.Atoi(r.FormValue("min")); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if sqsConf.Min, err = strconv.Atoi(r.FormValue("min")); err != nil {
+	if max, err = strconv.Atoi(r.FormValue("max")); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if sqsConf.Max, err = strconv.Atoi(r.FormValue("max")); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+
+	switch r.FormValue("type") {
+	case "sqs":
+		sqsConf := new(controller.SQSControlerConfig)
+		if err := json.Unmarshal([]byte(cm[confName]), sqsConf); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		sqsConf.Min = min
+		sqsConf.Max = max
+		b, err := json.Marshal(sqsConf)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		cm[confName] = string(b)
+	case "pubsub":
+		pubsubConf := new(controller.PubSubControlerConfig)
+		if err := json.Unmarshal([]byte(cm[confName]), pubsubConf); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		pubsubConf.Min = min
+		pubsubConf.Max = max
+		b, err := json.Marshal(pubsubConf)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		cm[confName] = string(b)
+	case "rabbitmq":
+		rabbitmqConf := new(controller.RabbitMQControlerConfig)
+		if err := json.Unmarshal([]byte(cm[confName]), rabbitmqConf); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		rabbitmqConf.Min = min
+		rabbitmqConf.Max = max
+		b, err := json.Marshal(rabbitmqConf)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		cm[confName] = string(b)
 	}
-	b, err := json.Marshal(sqsConf)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	cm[confName] = string(b)
 	if err := k8s.UpdateConfigMap("mitose", cm); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
